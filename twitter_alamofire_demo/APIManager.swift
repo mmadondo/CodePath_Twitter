@@ -41,6 +41,7 @@ class APIManager: SessionManager {
                     print("Welcome \(user.name)")
                     
                     // MARK: TODO: set User.current, so that it's persisted
+                    User.current = user
                     
                     success()
                 }
@@ -51,9 +52,11 @@ class APIManager: SessionManager {
     }
     
     func logout() {
-        clearCredentials()
+        // 1. Clear current user by setting it to nil
+        User.current = nil
         
-        // TODO: Clear current user by setting it to nil
+        // 2. Deauthorize OAuth tokens
+        clearCredentials()
         
         NotificationCenter.default.post(name: NSNotification.Name("didLogout"), object: nil)
     }
@@ -78,8 +81,7 @@ class APIManager: SessionManager {
         
     func getHomeTimeLine(completion: @escaping ([Tweet]?, Error?) -> ()) {
 
-        // This uses tweets from disk to avoid hitting rate limit. Comment out if you want fresh
-        // tweets,
+        // This uses tweets from disk to avoid hitting rate limit. Comment out if you want fresh tweets,
         if let data = UserDefaults.standard.object(forKey: "hometimeline_tweets") as? Data {
             let tweetDictionaries = NSKeyedUnarchiver.unarchiveObject(with: data) as! [[String: Any]]
             let tweets = tweetDictionaries.flatMap({ (dictionary) -> Tweet in
